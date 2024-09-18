@@ -34,20 +34,17 @@ router.post('/login', passport.authenticate('login', { failureRedirect: '/faillo
     req.session.user = {
         first_name: req.user.first_name,
         last_name: req.user.last_name,
+        email: req.user.email,
         age: req.user.age,
-        email: req.user.email
+        role: req.user.role,
+    };
+
+    if (req.user.role === 'admin') {
+        return res.redirect('/admin');
 
     }
 
-    res.send({ status: "success", payload: req.user }).redirect('/profile');
-
-
-
-    /* const user = await User.findOne({ email }, { email: 1, first_name: 1, last_name: 1, password: 1 });
-    if (!user) return res.status(400).send({ status: "error", error: "Usuario no encontrado" });
-    if (!isValidPassword(user, password)) return res.status(403).send({ status: "error", error: "Password incorrecto" })
-    delete user.password
-    req.session.user = user */
+    res.redirect('/profile');
 
 });
 

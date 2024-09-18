@@ -9,10 +9,9 @@ const LocalStrategy = local.Strategy;
 const initializePassport = () => {
     passport.use('register', new LocalStrategy({
         usernameField: 'email',
-        /* passwordField: 'password', */
         passReqToCallback: true
     }, async (req, username, password, done) => {
-        const { first_name, last_name, email, age } = req.body;
+        const { first_name, last_name, email, age, role } = req.body;
         try {
             let user = await userService.findOne({ email: username });
             if (user) {
@@ -20,14 +19,13 @@ const initializePassport = () => {
                 return done(null, false, { message: 'User already exists' });
             }
 
-            const newUser = new userService({ first_name, last_name, email, age, password: createHash(password) });
+            const newUser = new userService({ first_name, last_name, email, age, password: createHash(password), cartId: false, role });
             let result = await userService.create(newUser);
 
             return done(null, result);
 
 
-            /* await newUser.save();
-            return done(null, newUser); */
+
         } catch (err) {
             return done(err, { message: 'Error al registrar usuario' });
         }
@@ -44,7 +42,7 @@ const initializePassport = () => {
 
     passport.use('login', new LocalStrategy({
         usernameField: 'email',
-        /* passwordField: 'password', */
+
     }, async (username, password, done) => {
         try {
             const user = await userService.findOne({ email: username });

@@ -8,7 +8,11 @@ router.get('/login', isNotAuthenticated, (req, res) => {
 });
 
 router.get('/register', isNotAuthenticated, (req, res) => {
-    res.render('register');
+    const roles = [
+        { value: 'user', label: 'Usuario' },
+        { value: 'admin', label: 'Administrador' }
+    ];
+    return res.render('register', { roles });
 });
 
 router.get('/profile', isAuthenticated, (req, res) => {
