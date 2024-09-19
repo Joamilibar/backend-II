@@ -3,6 +3,8 @@ import User from '../../models/user.js';
 import { authorization, createHash, isValidPassword, passportCall, createToken } from '../../utils.js';
 import passport from 'passport';
 import jwt from 'jsonwebtoken';
+import { authToken } from '../../middleware/auth.js';
+import { secretOrKey } from '../../utils.js';
 
 
 
@@ -15,20 +17,11 @@ router.post('/register', passport.authenticate('register', { failureRedirect: '/
     let token = createToken(req.user);
 
     console.log(({ status: "success", message: "Usuario registrado correctamente" }))
-    res.set('Authorization', `Bearer ${token}`);
-    res.cookie('token', token, { httpOnly: true });
+
+    res.cookie('token', token, { httpOnly: true, maxAge: 60 * 30 * 1000 });
     res.redirect('/login');
 
 
-
-    /* const { first_name, last_name, email, age, password } = req.body;
-    try {
-        const newUser = new User({ first_name, last_name, email, age, password: createHash(password) });
-        await newUser.save();
-        res.redirect('/login');
-    } catch (err) {
-        res.status(500).send('Error al registrar usuario');
-    } */
 });
 
 router.get('/failregister', (req, res) => {
@@ -37,7 +30,7 @@ router.get('/failregister', (req, res) => {
 });
 
 router.post('/login', passport.authenticate('login', { failureRedirect: '/faillogin' }), async (req, res) => {
-    // const { email, password } = req.body;
+
 
     if (!req.user) return res.status(400).send({ status: "error", error: "Credenciales Invalidas" })
 
@@ -59,8 +52,8 @@ router.post('/login', passport.authenticate('login', { failureRedirect: '/faillo
 
     let token = createToken(req.user);
     console.log(token)
-    res.set('Authorization', `Bearer ${token}`);
-    res.cookie('token', token, { httpOnly: true });
+    // res.set('Authorization', `Bearer ${token}`);
+    res.cookie('token', token, { httpOnly: true, maxAge: 60 * 30 * 1000 });
     res.redirect('/profile');
 
 });
@@ -96,8 +89,42 @@ router.post('/update', async (req, res) => { // ACTUALIZAR PASSWORD DE UN USUARI
 
 });
 
-router.get('/current', passportCall('jwt'), authorization('user'), (req, res) => {
-    res.send(req.user);
-});
+router.get('/current', passportCall('jwt'), authToken, (req, res) => {
+    let token = req.cookies.token;
 
+    if (!token) {
+        return res.send({ status: "error", error: "No authenticated user" })
+    }
+    try {
+        let decoded = jwt.verify(token, secretOrKey);
+        console.log('Decoded User: ', decoded)
+        return res.send(decoded.user);
+    } catch (error) {
+        console.error(error)
+    }
+
+    /* console.log('Token:', token, Boolean(token));
+    console.log("User: ", req.cookies.token)
+
+    let decoded = jwt.verify(token, secretOrKey);
+    console.log('Decoded:', decoded);
+
+    return { user: req.user };
+ */
+
+    /* let token = req.cookies.token;
+
+    console.log('Token:', token, Boolean(token));
+
+    try {
+        if (!token) return res.status(401).send({ error: 'No Token Submited' });
+
+        let decoded = jwt.verify(token, secretOrKey);
+        console.log('Decoded:', decoded);
+    }
+    catch (err) {
+        return res.status(403).send({ error: 'Invalid Token' });
+    }
+ */
+});
 export default router;

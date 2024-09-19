@@ -3,7 +3,7 @@ import passport from 'passport'
 import jwt from 'jsonwebtoken'
 
 
-const secretOrKey = 'userSecretToken';
+export const secretOrKey = 'userSecretToken';
 
 // Hashear la contraseña
 export const createHash = password => bcrypt.hashSync(password, bcrypt.genSaltSync(10))
@@ -17,15 +17,13 @@ export const passportCall = (strategy) => {
             if (err) {
                 return next(err)
             }
-            if (!user) {
-                return res.status(401).send({ error: info.messages ? info.messages : info.toString() })
-            }
+            if (!user) return res.status(401).send({ error: info.messages ? info.messages : info.toString() });
 
-            req.user = user
-            next()
-        })
 
-            (req, res, next)
+
+            req.user = user;
+            next();
+        })(req, res, next)
     }
 }
 
@@ -40,5 +38,7 @@ export const authorization = (role) => {
 }
 
 export const createToken = (user) => {
-    return jwt.sign({ email: user.email, role: user.role }, secretOrKey, { expiresIn: '1h' })
+    const token = jwt.sign({ user }, secretOrKey, { expiresIn: '1h' })
+    return token;
+
 }

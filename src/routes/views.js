@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { authToken, isAuthenticated, isNotAuthenticated } from '../middleware/auth.js';
+import jwt from 'jsonwebtoken';
 
 const router = Router();
 
@@ -25,19 +26,10 @@ router.get('/update', isNotAuthenticated, (req, res) => {
 });
 
 router.get('/current', isAuthenticated, (req, res) => {
-    let token = req.cookies.token;
-    console.log('Token:', token, Boolean(token));
-    if (!token) return res.status(401).send({ error: 'No authenticated, no token' });
+    const user = req.session.user;
+    console.log('Usuario Registrado: ', user);
+    return res.render('current', { user });
 
-    try {
-
-        let decoded = jwt.verify(token, secretOrKey);
-        console.log('Decoded:', decoded);
-        res.render('profile', { user: decoded, sessionUser: req.session.user });
-    }
-    catch (err) {
-        return res.status(403).send({ error: 'Invalid Token' });
-    }
 }
 );
 

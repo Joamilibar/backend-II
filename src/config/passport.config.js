@@ -4,6 +4,7 @@ import userService from "../models/user.js";
 import { createHash, isValidPassword } from "../utils.js";
 import jwt from 'passport-jwt';
 import cookieParser from "cookie-parser";
+import { secretOrKey } from "../utils.js";
 
 const JWTStrategy = jwt.Strategy;
 const ExtractJWT = jwt.ExtractJwt;
@@ -11,9 +12,9 @@ const LocalStrategy = local.Strategy;
 
 const cookieExtractor = (req) => {
     let token = null;
-    console.log(req.headers)
-    if (req && req.headers) {
-        token = req.headers.authorization.split(' ')[1];
+    console.log(req.cookies)
+    if (req && req.cookies) {
+        token = req.cookies['token'];
     }
     return token;
 };
@@ -28,6 +29,7 @@ const initializePassport = () => {
             let user = await userService.findOne({ email: username });
             if (user) {
                 console.log('User already exists');
+
                 return done(null, false, { message: 'User already exists' });
             }
 
@@ -52,10 +54,12 @@ const initializePassport = () => {
             const user = await userService.findOne({ email: username });
             if (!user) {
                 console.log('User not found');
+
                 return done(null, false, { message: 'User not found' });
             }
             if (!isValidPassword(user, password)) {
                 console.log('Invalid password');
+
                 return done(null, false, { message: 'Invalid password' });
             }
 
@@ -69,12 +73,25 @@ const initializePassport = () => {
 
     passport.use('jwt', new JWTStrategy({
         jwtFromRequest: ExtractJWT.fromExtractors([cookieExtractor]),
-        secretOrKey: 'userSecretToken'
+        secretOrKey: secretOrKey
     }, async (jwt_payload, done) => {
         try {
-            return done(null, jwt_payload);
+            if (!jwt_payload) {
+                console.log('No token found');
+                return done(null, false, { message: 'No token found' });
+            }
+            /* const user = await userService.findById(jwt_payload._id);
+            console.log(user)
+            if (!user) {
+                console.log('User not found');
+                // done(null, false, jwt_payload, { message: 'Invalid Token' }); */
+
+            return done(null, jwt_payload, { message: 'Invalid Token' });
+
+
+
         } catch (error) {
-            return done(error);
+            return done(error, { message: 'Error al iniciar sesión' });
         }
     }));
 
