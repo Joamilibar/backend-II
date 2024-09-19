@@ -27,19 +27,7 @@ export const isNotAuthenticated = (req, res, next) => {
     }
 }; */
 
-/* export const extractTokenFromCookie = (req, res, next) => {
-    const token = req.cookies.token;
-    if (token) {
-        req.headers.authorization = `Bearer ${token}`;  // Set the token in the header
-    }
-    next();
-} */
 
-/* export const authToken = (req, res, next) => {
-    passport.authenticate('jwt', { session: false });
-
-
-} */
 export const authToken = (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (!authHeader) {

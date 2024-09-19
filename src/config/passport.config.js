@@ -80,11 +80,7 @@ const initializePassport = () => {
                 console.log('No token found');
                 return done(null, false, { message: 'No token found' });
             }
-            /* const user = await userService.findById(jwt_payload._id);
-            console.log(user)
-            if (!user) {
-                console.log('User not found');
-                // done(null, false, jwt_payload, { message: 'Invalid Token' }); */
+
 
             return done(null, jwt_payload, { message: 'Invalid Token' });
 

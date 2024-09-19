@@ -103,28 +103,6 @@ router.get('/current', passportCall('jwt'), authToken, (req, res) => {
         console.error(error)
     }
 
-    /* console.log('Token:', token, Boolean(token));
-    console.log("User: ", req.cookies.token)
 
-    let decoded = jwt.verify(token, secretOrKey);
-    console.log('Decoded:', decoded);
-
-    return { user: req.user };
- */
-
-    /* let token = req.cookies.token;
-
-    console.log('Token:', token, Boolean(token));
-
-    try {
-        if (!token) return res.status(401).send({ error: 'No Token Submited' });
-
-        let decoded = jwt.verify(token, secretOrKey);
-        console.log('Decoded:', decoded);
-    }
-    catch (err) {
-        return res.status(403).send({ error: 'Invalid Token' });
-    }
- */
 });
 export default router;
