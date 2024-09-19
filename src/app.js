@@ -8,6 +8,7 @@ import sessionsRouter from './routes/api/sessions.js';
 import viewsRouter from './routes/views.js';
 import passport from 'passport';
 import initializePassport from './config/passport.config.js';
+import cookieParser from 'cookie-parser';
 
 const app = express();
 const PORT = 8080;
@@ -30,6 +31,9 @@ app.use(session({
     store: MongoStore.create({ mongoUrl: 'mongodb+srv://joamilibarra:oK4kAi1laK4MdSwY@coder70065.llnur.mongodb.net/session?retryWrites=true&w=majority&appName=Coder70065' }),
 }))
 
+app.use(express.static('public'));
+app.use(express.json());
+app.use(cookieParser());
 initializePassport(passport);
 app.use(passport.initialize());
 app.use(passport.session());

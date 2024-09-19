@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { isAuthenticated, isNotAuthenticated } from '../middleware/auth.js';
+import { authToken, isAuthenticated, isNotAuthenticated } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -16,11 +16,29 @@ router.get('/register', isNotAuthenticated, (req, res) => {
 });
 
 router.get('/profile', isAuthenticated, (req, res) => {
+
     res.render('profile', { user: req.session.user });
 });
 
 router.get('/update', isNotAuthenticated, (req, res) => {
     res.render('update');
 });
+
+router.get('/current', isAuthenticated, (req, res) => {
+    let token = req.cookies.token;
+    console.log('Token:', token, Boolean(token));
+    if (!token) return res.status(401).send({ error: 'No authenticated, no token' });
+
+    try {
+
+        let decoded = jwt.verify(token, secretOrKey);
+        console.log('Decoded:', decoded);
+        res.render('profile', { user: decoded, sessionUser: req.session.user });
+    }
+    catch (err) {
+        return res.status(403).send({ error: 'Invalid Token' });
+    }
+}
+);
 
 export default router;

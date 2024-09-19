@@ -2,9 +2,21 @@ import passport from "passport";
 import local from "passport-local";
 import userService from "../models/user.js";
 import { createHash, isValidPassword } from "../utils.js";
+import jwt from 'passport-jwt';
+import cookieParser from "cookie-parser";
 
-
+const JWTStrategy = jwt.Strategy;
+const ExtractJWT = jwt.ExtractJwt;
 const LocalStrategy = local.Strategy;
+
+const cookieExtractor = (req) => {
+    let token = null;
+    console.log(req.headers)
+    if (req && req.headers) {
+        token = req.headers.authorization.split(' ')[1];
+    }
+    return token;
+};
 
 const initializePassport = () => {
     passport.use('register', new LocalStrategy({
@@ -31,14 +43,6 @@ const initializePassport = () => {
         }
     }))
 
-    passport.serializeUser((user, done) => {
-        done(null, user._id);
-    });
-
-    passport.deserializeUser(async (id, done) => {
-        let user = await userService.findById(id);
-        done(null, user);
-    });
 
     passport.use('login', new LocalStrategy({
         usernameField: 'email',
@@ -54,12 +58,34 @@ const initializePassport = () => {
                 console.log('Invalid password');
                 return done(null, false, { message: 'Invalid password' });
             }
+
+
+
             return done(null, user);
         } catch (err) {
             return done(err, { message: 'Error al iniciar sesión' });
         }
     }))
-}
 
+    passport.use('jwt', new JWTStrategy({
+        jwtFromRequest: ExtractJWT.fromExtractors([cookieExtractor]),
+        secretOrKey: 'userSecretToken'
+    }, async (jwt_payload, done) => {
+        try {
+            return done(null, jwt_payload);
+        } catch (error) {
+            return done(error);
+        }
+    }));
+
+    passport.serializeUser((user, done) => {
+        done(null, user._id);
+    });
+
+    passport.deserializeUser(async (id, done) => {
+        let user = await userService.findById(id);
+        done(null, user);
+    });
+};
 
 export default initializePassport;

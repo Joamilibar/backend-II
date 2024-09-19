@@ -1,12 +1,22 @@
 import { Router } from 'express';
 import User from '../../models/user.js';
-import { createHash, isValidPassword } from '../../utils.js';
+import { authorization, createHash, isValidPassword, passportCall, createToken } from '../../utils.js';
 import passport from 'passport';
+import jwt from 'jsonwebtoken';
+
+
+
 
 const router = Router();
 
 router.post('/register', passport.authenticate('register', { failureRedirect: '/failregister' }), async (req, res) => {
+    const { email, password } = req.body;
+
+    let token = createToken(req.user);
+
     console.log(({ status: "success", message: "Usuario registrado correctamente" }))
+    res.set('Authorization', `Bearer ${token}`);
+    res.cookie('token', token, { httpOnly: true });
     res.redirect('/login');
 
 
@@ -31,19 +41,26 @@ router.post('/login', passport.authenticate('login', { failureRedirect: '/faillo
 
     if (!req.user) return res.status(400).send({ status: "error", error: "Credenciales Invalidas" })
 
+
+
     req.session.user = {
         first_name: req.user.first_name,
         last_name: req.user.last_name,
         email: req.user.email,
         age: req.user.age,
-        role: req.user.role,
+        cartId: req.user.cartId,
+        role: req.user.role
     };
 
-    if (req.user.role === 'admin') {
+    /*  if (req.user.role === 'admin') {
         return res.redirect('/admin');
+        
+        } */
 
-    }
-
+    let token = createToken(req.user);
+    console.log(token)
+    res.set('Authorization', `Bearer ${token}`);
+    res.cookie('token', token, { httpOnly: true });
     res.redirect('/profile');
 
 });
@@ -77,6 +94,10 @@ router.post('/update', async (req, res) => { // ACTUALIZAR PASSWORD DE UN USUARI
         console.error(error)
     }
 
+});
+
+router.get('/current', passportCall('jwt'), authorization('user'), (req, res) => {
+    res.send(req.user);
 });
 
 export default router;
